@@ -1,0 +1,1086 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TeraViewer – TeraBox Fast Downloader</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f1117;
+    --bg2: #161b27;
+    --bg3: #1c2233;
+    --card: #1a1f2e;
+    --border: #252d42;
+    --blue: #2563eb;
+    --blue-bright: #3b82f6;
+    --blue-glow: rgba(59,130,246,0.18);
+    --blue-light: #60a5fa;
+    --text: #e8eaf0;
+    --muted: #6b7390;
+    --green: #22c55e;
+    --yellow: #f59e0b;
+    --red: #ef4444;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Nunito', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── NAVBAR ── */
+  nav {
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    backdrop-filter: blur(12px);
+  }
+
+  .nav-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1.2rem;
+    font-weight: 900;
+    letter-spacing: -0.5px;
+  }
+
+  .logo-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .logo-icon img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+
+  .logo-tera { color: var(--blue-light); }
+  .logo-viwer { color: var(--text); }
+
+  .nav-links {
+    display: flex;
+    gap: 6px;
+  }
+
+  .nav-links a {
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-weight: 600;
+    padding: 6px 14px;
+    border-radius: 8px;
+    transition: all 0.2s;
+  }
+
+  .nav-links a:hover, .nav-links a.active {
+    color: var(--text);
+    background: var(--bg3);
+  }
+
+  /* ── HERO ── */
+  .hero {
+    text-align: center;
+    padding: 60px 20px 40px;
+    position: relative;
+  }
+
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 50%;
+    transform: translateX(-50%);
+    width: 600px;
+    height: 300px;
+    background: radial-gradient(ellipse at center, rgba(37,99,235,0.12) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(37,99,235,0.12);
+    border: 1px solid rgba(59,130,246,0.25);
+    color: var(--blue-light);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    padding: 5px 14px;
+    border-radius: 20px;
+    margin-bottom: 20px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .hero h1 {
+    font-size: clamp(1.8rem, 6vw, 3rem);
+    font-weight: 900;
+    letter-spacing: -1px;
+    line-height: 1.15;
+    margin-bottom: 14px;
+  }
+
+  .hero h1 span { color: var(--blue-bright); }
+
+  .hero p {
+    color: var(--muted);
+    font-size: 1rem;
+    max-width: 500px;
+    margin: 0 auto 36px;
+    line-height: 1.6;
+  }
+
+  /* ── MAIN INPUT CARD ── */
+  .input-card {
+    max-width: 720px;
+    margin: 0 auto 40px;
+    padding: 0 20px;
+  }
+
+  .input-wrapper {
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    border-radius: 16px;
+    padding: 6px 6px 6px 20px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    transition: border-color 0.3s, box-shadow 0.3s;
+  }
+
+  .input-wrapper:focus-within {
+    border-color: var(--blue-bright);
+    box-shadow: 0 0 0 4px var(--blue-glow);
+  }
+
+  .input-wrapper input {
+    flex: 1;
+    background: none;
+    border: none;
+    outline: none;
+    color: var(--text);
+    font-family: 'Nunito', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 600;
+    min-width: 0;
+  }
+
+  .input-wrapper input::placeholder { color: var(--muted); font-weight: 400; }
+
+  .paste-btn {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-family: 'Nunito', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 700;
+    padding: 8px 14px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+
+  .paste-btn:hover { color: var(--text); border-color: var(--blue-bright); }
+
+  .extract-btn {
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    border: none;
+    color: #fff;
+    font-family: 'Nunito', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 800;
+    padding: 12px 28px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+    box-shadow: 0 4px 16px rgba(37,99,235,0.35);
+  }
+
+  .extract-btn:hover {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(59,130,246,0.4);
+  }
+
+  .extract-btn:active { transform: translateY(0); }
+  .extract-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+  .input-hint {
+    text-align: center;
+    color: var(--muted);
+    font-size: 0.75rem;
+    margin-top: 10px;
+  }
+
+  /* ── LOADING ── */
+  .loading {
+    display: none;
+    text-align: center;
+    padding: 40px 20px;
+  }
+
+  .spinner {
+    width: 44px;
+    height: 44px;
+    border: 3px solid var(--border);
+    border-top-color: var(--blue-bright);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    margin: 0 auto 16px;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .loading p { color: var(--muted); font-size: 0.9rem; font-weight: 600; }
+
+  /* ── RESULT CARD ── */
+  .result-card {
+    display: none;
+    max-width: 720px;
+    margin: 0 auto 40px;
+    padding: 0 20px;
+    animation: fadeUp 0.4s ease;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .result-inner {
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+  }
+
+  .result-header {
+    background: var(--bg3);
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--green);
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.5px;
+  }
+
+  .result-body {
+    padding: 20px;
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+
+  .result-thumb {
+    width: 180px;
+    height: 120px;
+    border-radius: 10px;
+    object-fit: cover;
+    background: var(--bg3);
+    flex-shrink: 0;
+    border: 1px solid var(--border);
+  }
+
+  .result-thumb-placeholder {
+    width: 180px;
+    height: 120px;
+    border-radius: 10px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5rem;
+    flex-shrink: 0;
+  }
+
+  .result-info {
+    flex: 1;
+    min-width: 200px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .file-name {
+    font-size: 1rem;
+    font-weight: 800;
+    line-height: 1.4;
+    word-break: break-all;
+  }
+
+  .file-meta {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .meta-pill {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--muted);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .meta-pill.type { color: var(--blue-light); border-color: rgba(96,165,250,0.3); }
+
+  .result-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: auto;
+  }
+
+  .btn-download {
+    background: linear-gradient(135deg, #16a34a, #15803d);
+    border: none;
+    color: #fff;
+    font-family: 'Nunito', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 800;
+    padding: 10px 22px;
+    border-radius: 10px;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s;
+    box-shadow: 0 4px 12px rgba(22,163,74,0.3);
+  }
+
+  .btn-download:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(22,163,74,0.4); }
+
+  .btn-copy {
+    background: var(--bg3);
+    border: 1.5px solid var(--border);
+    color: var(--text);
+    font-family: 'Nunito', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 700;
+    padding: 10px 18px;
+    border-radius: 10px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s;
+  }
+
+  .btn-copy:hover { border-color: var(--blue-bright); color: var(--blue-light); }
+  /* ── RESULT PAGE - teradownloader style ── */
+  .result-top-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .btn-another {
+    background: var(--blue);
+    border: none;
+    color: #fff;
+    font-family: 'Nunito', sans-serif;
+    font-size: 0.88rem;
+    font-weight: 700;
+    padding: 10px 20px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-another:hover { background: var(--blue-bright); }
+
+  .success-badge {
+    background: rgba(34,197,94,0.12);
+    border: 1px solid rgba(34,197,94,0.3);
+    color: var(--green);
+    font-size: 0.82rem;
+    font-weight: 700;
+    padding: 6px 14px;
+    border-radius: 20px;
+  }
+
+  .thumb-wrap {
+    width: 100%;
+    border-radius: 14px;
+    overflow: hidden;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    margin-bottom: 14px;
+    min-height: 180px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .result-thumb-full {
+    width: 100%;
+    max-height: 280px;
+    object-fit: cover;
+    display: block;
+  }
+
+  .result-thumb-placeholder {
+    font-size: 4rem;
+    padding: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .file-info-box {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 18px;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .server-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+  }
+
+  .server-btn {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--blue);
+    border: none;
+    border-radius: 12px;
+    padding: 14px 18px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.2s;
+    gap: 12px;
+    box-shadow: 0 4px 14px rgba(37,99,235,0.3);
+  }
+
+  .server-btn:hover {
+    background: var(--blue-bright);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(59,130,246,0.4);
+  }
+
+  .server-btn-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .server-icon {
+    font-size: 1.4rem;
+    width: 36px;
+    text-align: center;
+  }
+
+  .server-label {
+    font-weight: 800;
+    font-size: 0.95rem;
+    color: #fff;
+  }
+
+  .server-speed {
+    font-size: 0.7rem;
+    color: rgba(255,255,255,0.7);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .server-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .btn-copy-small {
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: #fff;
+    font-family: 'Nunito', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 5px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .btn-copy-small:hover { background: rgba(255,255,255,0.25); }
+  .btn-copy-small.copied { background: rgba(34,197,94,0.3); border-color: var(--green); }
+
+  .download-arrow {
+    color: #fff;
+    font-size: 1.3rem;
+  }
+
+  /* ── ERROR ── */
+  .error-card {
+    display: none;
+    max-width: 720px;
+    margin: 0 auto 40px;
+    padding: 0 20px;
+  }
+
+  .error-inner {
+    background: rgba(239,68,68,0.08);
+    border: 1.5px solid rgba(239,68,68,0.25);
+    border-radius: 14px;
+    padding: 18px 20px;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .error-icon { font-size: 1.3rem; flex-shrink: 0; margin-top: 1px; }
+  .error-text { font-size: 0.88rem; color: #fca5a5; font-weight: 600; line-height: 1.5; }
+
+  /* ── FEATURES SECTION ── */
+  .features {
+    max-width: 900px;
+    margin: 0 auto 60px;
+    padding: 0 20px;
+  }
+
+  .section-label {
+    text-align: center;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: var(--muted);
+    font-family: 'JetBrains Mono', monospace;
+    margin-bottom: 10px;
+  }
+
+  .section-title {
+    text-align: center;
+    font-size: 1.5rem;
+    font-weight: 900;
+    margin-bottom: 30px;
+    letter-spacing: -0.5px;
+  }
+
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 14px;
+  }
+
+  .feature-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px;
+    transition: border-color 0.2s, transform 0.2s;
+  }
+
+  .feature-card:hover {
+    border-color: var(--blue-bright);
+    transform: translateY(-2px);
+  }
+
+  .feature-icon {
+    font-size: 1.6rem;
+    margin-bottom: 10px;
+  }
+
+  .feature-card h3 {
+    font-size: 0.9rem;
+    font-weight: 800;
+    margin-bottom: 6px;
+  }
+
+  .feature-card p {
+    font-size: 0.78rem;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+
+  /* ── HOW TO USE ── */
+  .howto {
+    max-width: 720px;
+    margin: 0 auto 60px;
+    padding: 0 20px;
+  }
+
+  .steps {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .step {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    position: relative;
+  }
+
+  .step:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    left: 19px;
+    top: 42px;
+    width: 2px;
+    height: calc(100% - 10px);
+    background: var(--border);
+  }
+
+  .step-num {
+    width: 40px;
+    height: 40px;
+    background: var(--blue);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 900;
+    font-size: 0.9rem;
+    flex-shrink: 0;
+    box-shadow: 0 0 12px rgba(37,99,235,0.4);
+    position: relative;
+    z-index: 1;
+  }
+
+  .step-content {
+    padding: 8px 0 28px;
+  }
+
+  .step-content h3 {
+    font-size: 0.95rem;
+    font-weight: 800;
+    margin-bottom: 4px;
+  }
+
+  .step-content p {
+    font-size: 0.8rem;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+
+  /* ── FOOTER ── */
+  footer {
+    background: var(--bg2);
+    border-top: 1px solid var(--border);
+    padding: 30px 20px;
+    text-align: center;
+  }
+
+  .footer-logo {
+    font-size: 1.1rem;
+    font-weight: 900;
+    margin-bottom: 8px;
+  }
+
+  footer p {
+    font-size: 0.75rem;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+
+  footer a { color: var(--blue-light); text-decoration: none; }
+
+  /* ── AD PLACEHOLDER ── */
+  .ad-banner {
+    max-width: 720px;
+    margin: 0 auto 30px;
+    padding: 0 20px;
+  }
+
+  .ad-inner {
+    background: var(--bg2);
+    border: 1px dashed var(--border);
+    border-radius: 10px;
+    height: 90px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--muted);
+    font-size: 0.72rem;
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 1px;
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 520px) {
+    .input-wrapper { padding: 6px 6px 6px 14px; gap: 6px; }
+    .extract-btn { padding: 12px 16px; font-size: 0.85rem; }
+    .paste-btn { display: none; }
+    .result-thumb, .result-thumb-placeholder { width: 100%; height: 160px; }
+    .nav-links { display: none; }
+    .hero h1 { font-size: 1.6rem; }
+    .hero p { font-size: 0.85rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav>
+  <div class="nav-logo">
+    <div class="logo-icon">
+      <img src="logo.png" alt="TeraViewer Logo" onerror="this.parentElement.innerHTML='👁️'" />
+    </div>
+    <span class="logo-tera">Tera</span><span class="logo-viwer">Viewer</span>
+  </div>
+  <div class="nav-links">
+    <a href="#" class="active">Home</a>
+    <a href="#howto">How to Use</a>
+    <a href="#features">Features</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-badge">⚡ FAST · FREE · NO LOGIN NEEDED</div>
+  <h1>Download TeraBox Files<br><span>Instantly & Free</span></h1>
+  <p>Paste any TeraBox link. Get a direct download in seconds.</p>
+</div>
+
+<!-- AD BANNER TOP - user sees this first before scrolling to input -->
+<div class="ad-banner">
+  <!-- Replace with your AdSense code -->
+  <!-- <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+  <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-XXXXXXXX" data-ad-slot="XXXXXXXX" data-ad-format="auto"></ins> -->
+  <div class="ad-inner">[ ADVERTISEMENT · Google AdSense ]</div>
+</div>
+
+<!-- INPUT CARD -->
+<div class="input-card">
+  <div class="input-wrapper">
+    <input type="url" id="urlInput" placeholder="Paste TeraBox link here... (https://terabox.com/s/...)" />
+    <button class="paste-btn" onclick="pasteFromClipboard()">📋 Paste</button>
+    <button class="extract-btn" id="extractBtn" onclick="extractLink()">Get Link ⚡</button>
+  </div>
+  <p class="input-hint">Supports terabox.com · 1024terabox.com · terasharelink.com · teraboxlink.com</p>
+</div>
+
+<!-- LOADING -->
+<div class="loading" id="loading">
+  <div class="spinner"></div>
+  <p>Extracting download link...</p>
+</div>
+
+<!-- ERROR -->
+<div class="error-card" id="errorCard">
+  <div class="error-inner">
+    <div class="error-icon">⚠️</div>
+    <div class="error-text" id="errorText">Something went wrong. Please check the link and try again.</div>
+  </div>
+</div>
+
+<!-- RESULT -->
+<div class="result-card" id="resultCard">
+
+  <!-- Download Another button -->
+  <div class="result-top-bar">
+    <button class="btn-another" onclick="resetForm()">← Download Another File</button>
+    <span class="success-badge">✅ Success!</span>
+  </div>
+
+  <!-- Thumbnail -->
+  <div class="thumb-wrap">
+    <div class="result-thumb-placeholder" id="thumbPlaceholder">🎬</div>
+    <img class="result-thumb-full" id="thumbImg" style="display:none" alt="thumbnail" />
+  </div>
+
+  <!-- File info box -->
+  <div class="file-info-box">
+    <div class="file-name" id="fileName">filename.mp4</div>
+    <div class="file-meta">
+      <span class="meta-pill type" id="fileType">VIDEO</span>
+      <span class="meta-pill" id="fileSize">—</span>
+    </div>
+  </div>
+
+  <!-- Server download buttons -->
+  <div id="serverButtons" class="server-buttons"></div>
+
+  <!-- AD BELOW RESULT -->
+  <div class="ad-banner" style="margin:16px 0 0;">
+    <div class="ad-inner">[ ADVERTISEMENT · Google AdSense ]</div>
+  </div>
+
+</div>
+
+<!-- FEATURES -->
+<div class="features" id="features">
+  <div class="section-label">WHY TERAVIWER</div>
+  <div class="section-title">Everything You Need</div>
+  <div class="features-grid">
+    <div class="feature-card">
+      <div class="feature-icon">⚡</div>
+      <h3>Lightning Fast</h3>
+      <p>Get your direct download link in under 3 seconds. No waiting, no captcha.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🔒</div>
+      <h3>No Login Required</h3>
+      <p>Download any shared TeraBox file without creating an account or logging in.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🚀</div>
+      <h3>Full Speed Downloads</h3>
+      <p>Direct CDN links mean maximum download speed. No throttling or speed limits.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🎬</div>
+      <h3>All File Types</h3>
+      <p>Videos, documents, photos, archives — works with any file shared on TeraBox.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📱</div>
+      <h3>Mobile Friendly</h3>
+      <p>Works perfectly on Android and iPhone. No app needed.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">💸</div>
+      <h3>100% Free</h3>
+      <p>No subscription, no premium plan. TeraViewer is completely free to use.</p>
+    </div>
+  </div>
+</div>
+
+<!-- HOW TO USE -->
+<div class="howto" id="howto">
+  <div class="section-label">GUIDE</div>
+  <div class="section-title">How to Use TeraViewer</div>
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <h3>Copy the TeraBox Share Link</h3>
+        <p>Open the TeraBox shared file link in your browser and copy the URL from the address bar.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <h3>Paste it in TeraViewer</h3>
+        <p>Paste the link into the input box above and click the "Get Link ⚡" button.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <h3>Click Download</h3>
+        <p>Your direct download link is ready. Click "Download Now" and the file saves straight to your device.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- AD BANNER BOTTOM -->
+<div class="ad-banner">
+  <div class="ad-inner">[ ADVERTISEMENT · Google AdSense ]</div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">
+    <span style="color:var(--blue-light)">Tera</span>Viewer
+  </div>
+  <p>
+    TeraViewer is not affiliated with TeraBox or Flextech Inc.<br>
+    For personal use only. Always respect copyright and <a href="#">Terms of Service</a>.
+  </p>
+</footer>
+
+<script>
+  async function pasteFromClipboard() {
+    try {
+      const text = await navigator.clipboard.readText()
+      document.getElementById('urlInput').value = text
+    } catch {
+      alert('Please paste the link manually.')
+    }
+  }
+
+  function formatSize(bytes) {
+    if (!bytes) return 'Unknown size'
+    const gb = bytes / (1024 ** 3)
+    const mb = bytes / (1024 ** 2)
+    const kb = bytes / 1024
+    if (gb >= 1) return gb.toFixed(2) + ' GB'
+    if (mb >= 1) return mb.toFixed(1) + ' MB'
+    return kb.toFixed(0) + ' KB'
+  }
+
+  function getFileType(name) {
+    if (!name) return 'FILE'
+    const ext = name.split('.').pop().toLowerCase()
+    const video = ['mp4','mkv','avi','mov','webm','flv','m4v']
+    const image = ['jpg','jpeg','png','gif','webp','bmp']
+    const doc   = ['pdf','doc','docx','ppt','pptx','xls','xlsx','txt']
+    const zip   = ['zip','rar','7z','tar','gz']
+    if (video.includes(ext)) return 'VIDEO'
+    if (image.includes(ext)) return 'IMAGE'
+    if (doc.includes(ext))   return 'DOCUMENT'
+    if (zip.includes(ext))   return 'ARCHIVE'
+    return ext.toUpperCase() || 'FILE'
+  }
+
+  async function extractLink() {
+    const url = document.getElementById('urlInput').value.trim()
+    if (!url) { showError('Please paste a TeraBox link first.'); return }
+
+    if (!url.includes('terabox') && !url.includes('terasharelink') && !url.includes('teraboxlink')) {
+      showError("This doesn't look like a TeraBox link. Please check the URL.")
+      return
+    }
+
+    document.getElementById('resultCard').style.display = 'none'
+    document.getElementById('errorCard').style.display = 'none'
+    document.getElementById('loading').style.display = 'block'
+    document.getElementById('extractBtn').disabled = true
+
+    try {
+      // Call Netlify backend function
+      const res = await fetch('/api/extract', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ shareUrl: url })
+      })
+
+      const data = await res.json()
+
+      document.getElementById('loading').style.display = 'none'
+      document.getElementById('extractBtn').disabled = false
+
+      if (data.error) { showError(data.error); return }
+      showResult(data)
+
+    } catch (err) {
+      document.getElementById('loading').style.display = 'none'
+      document.getElementById('extractBtn').disabled = false
+      showError('Network error. Please check your connection and try again.')
+    }
+  }
+
+  function showResult(data) {
+    document.getElementById('fileName').textContent = data.fileName || 'Unknown File'
+    document.getElementById('fileSize').textContent = formatSize(data.fileSize)
+    document.getElementById('fileType').textContent = getFileType(data.fileName)
+
+    // Thumbnail
+    if (data.thumbnail) {
+      document.getElementById('thumbImg').src = data.thumbnail
+      document.getElementById('thumbImg').style.display = 'block'
+      document.getElementById('thumbPlaceholder').style.display = 'none'
+    } else {
+      const type = getFileType(data.fileName)
+      const icons = { VIDEO:'🎬', IMAGE:'🖼️', DOCUMENT:'📄', ARCHIVE:'🗜️', FILE:'📁' }
+      document.getElementById('thumbPlaceholder').textContent = icons[type] || '📁'
+      document.getElementById('thumbImg').style.display = 'none'
+      document.getElementById('thumbPlaceholder').style.display = 'flex'
+    }
+
+    // Server buttons - teradownloader style
+    const container = document.getElementById('serverButtons')
+    container.innerHTML = ''
+
+    if (data.servers && data.servers.length > 0) {
+      data.servers.forEach((server, i) => {
+        const btn = document.createElement('a')
+        btn.href = server.url
+        btn.target = '_blank'
+        btn.rel = 'noopener'
+        btn.className = 'server-btn'
+        btn.innerHTML = `
+          <div class="server-btn-left">
+            <div class="server-icon">${server.icon || '⬇️'}</div>
+            <div>
+              <div class="server-label">${server.label} — Download Now</div>
+              <div class="server-speed">● ${server.speed} Speed</div>
+            </div>
+          </div>
+          <div class="server-right">
+            <button class="btn-copy-small" onclick="event.preventDefault(); copyServer('${server.url}', this)">📋 Copy</button>
+            <span class="download-arrow">⬇️</span>
+          </div>
+        `
+        container.appendChild(btn)
+      })
+    } else {
+      container.innerHTML = '<p style="color:var(--muted);font-size:0.8rem;text-align:center;padding:10px;">No download links found.</p>'
+    }
+
+    // Hide input section, show result
+    document.getElementById('resultCard').style.display = 'block'
+    document.querySelector('.input-card').style.display = 'none'
+    document.querySelector('.ad-banner').style.display = 'none'
+    document.getElementById('resultCard').scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+
+  function resetForm() {
+    document.getElementById('resultCard').style.display = 'none'
+    document.getElementById('errorCard').style.display = 'none'
+    document.querySelector('.input-card').style.display = 'block'
+    document.querySelector('.ad-banner').style.display = 'block'
+    document.getElementById('urlInput').value = ''
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  function showError(msg) {
+    document.getElementById('loading').style.display = 'none'
+    document.getElementById('extractBtn').disabled = false
+    document.getElementById('errorText').textContent = msg
+    document.getElementById('errorCard').style.display = 'block'
+  }
+
+  async function copyServer(url, btn) {
+    try {
+      await navigator.clipboard.writeText(url)
+      btn.textContent = '✅ Copied!'
+      btn.classList.add('copied')
+      setTimeout(() => {
+        btn.textContent = '📋 Copy'
+        btn.classList.remove('copied')
+      }, 2000)
+    } catch {
+      alert('Copy failed. Please copy manually.')
+    }
+  }
+
+  document.getElementById('urlInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') extractLink()
+  })
+</script>
+</body>
+</html>
