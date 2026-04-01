@@ -87,7 +87,7 @@ async function fetchWithRetry(url, options, cookies, maxRetries = 3) {
         ...options,
         headers: {
           ...options.headers,
-          "Cookie": `ndus=${cookie}`,
+          "Cookie":cookie,
         }
       });
 
