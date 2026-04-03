@@ -146,13 +146,6 @@ try {
 } catch(e) {}
   // Extract share key
   const match = shareUrl.match(/\/s\/([a-zA-Z0-9_-]+)/);
-  // Validate domain
-const allowedDomains = ['terabox.com', '1024terabox.com', 'teraboxlink.com', 'terasharelink.com', 'teraboxapp.com'];
-const urlObj = new URL(shareUrl);
-if (!allowedDomains.some(d => urlObj.hostname.endsWith(d))) {
-  return res.status(400).json({ error: "Invalid TeraBox link. Please check the URL." });
-}
-  if (!match) return res.status(400).json({ error: "Invalid TeraBox link. Please check the URL." });
 
   const shorturl = match[1];
 
