@@ -139,6 +139,11 @@ export default async function handler(req, res) {
 
   if (!shareUrl) return res.status(400).json({ error: "No URL provided" });
 
+  // Resolve short URL to actual terabox domain
+try {
+  const resolved = await fetch(shareUrl, { method: 'HEAD', redirect: 'follow' });
+  shareUrl = resolved.url;
+} catch(e) {}
   // Extract share key
   const match = shareUrl.match(/\/s\/([a-zA-Z0-9_-]+)/);
   // Validate domain
