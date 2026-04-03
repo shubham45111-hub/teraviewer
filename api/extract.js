@@ -167,7 +167,7 @@ export default async function handler(req, res) {
   try {
     // ── STEP 1: Get file info ──
     const { data: infoData } = await fetchWithRetry(
-      `https://www.terabox.com/api/shorturlinfo?app_id=250528&shorturl=/s/${shorturl}`,
+      `https://www.terabox.com/api/shorturlinfo?app_id=250528&shorturl=${shorturl}`,
       { headers: BASE_HEADERS },
       cookies,
       Math.min(cookies.length, 3)
