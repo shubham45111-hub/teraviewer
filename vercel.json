@@ -5,6 +5,7 @@
       "maxDuration": 30
     }
   },
+  "regions": ["bom1"],
   "routes": [
     {
       "src": "/api/extract",
