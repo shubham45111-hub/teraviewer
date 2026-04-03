@@ -160,14 +160,14 @@ export default async function handler(req, res) {
   const UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36";
   const BASE_HEADERS = {
     "User-Agent": UA,
-    "Referer": "https://www.terabox.com/",
+    "Referer": "https://www.1024terabox.com/",
     "Accept": "application/json, text/plain, */*"
   };
 
   try {
     // ── STEP 1: Get file info ──
     const { data: infoData } = await fetchWithRetry(
-      `https://www.terabox.com/api/shorturlinfo?app_id=250528&shorturl=${shorturl}`,
+      `https://www.1024terabox.com/api/shorturlinfo?app_id=250528&shorturl=${shorturl}`,
       { headers: BASE_HEADERS },
       cookies,
       Math.min(cookies.length, 3)
@@ -192,7 +192,7 @@ export default async function handler(req, res) {
 
     // ── STEP 2: Get download links ──
     const { data: dlData } = await fetchWithRetry(
-      `https://www.terabox.com/api/download?app_id=250528&sign=${infoData.sign}&timestamp=${infoData.timestamp}&fs_ids=[${file.fs_id}]&shareid=${infoData.shareid}&uk=${infoData.uk}`,
+      `https://www.1024terabox.com/api/download?app_id=250528&sign=${infoData.sign}&timestamp=${infoData.timestamp}&fs_ids=[${file.fs_id}]&shareid=${infoData.shareid}&uk=${infoData.uk}`,
       { headers: BASE_HEADERS },
       cookies,
       Math.min(cookies.length, 3)
