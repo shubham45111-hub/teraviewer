@@ -1,0 +1,620 @@
+import { useState, useEffect, useRef } from "react";
+
+const css = `
+  @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --cyan: #22d3ee;
+    --purple: #a855f7;
+    --indigo: #6366f1;
+    --bg: #060810;
+    --surface: #0d1117;
+    --surface2: #111827;
+    --border: #1a2540;
+    --border2: #243050;
+    --text: #f1f5f9;
+    --muted: #64748b;
+    --dimmer: #334155;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  .tv { min-height: 100vh; display: flex; flex-direction: column; position: relative; }
+
+  /* ── Grid background ── */
+  .tv-grid-bg {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    background-image:
+      linear-gradient(rgba(34,211,238,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(34,211,238,0.04) 1px, transparent 1px);
+    background-size: 48px 48px;
+    mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 0%, transparent 75%);
+  }
+
+  .tv-glow-top {
+    position: fixed;
+    top: -180px; left: 50%; transform: translateX(-50%);
+    width: 900px; height: 500px;
+    background: radial-gradient(ellipse, #6366f118 0%, #a855f710 40%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── Header ── */
+  .tv-header {
+    position: sticky; top: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 32px;
+    height: 60px;
+    background: rgba(6,8,16,0.85);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .tv-logo-wrap { display: flex; align-items: center; gap: 9px; }
+
+  .tv-logo-text {
+    font-size: 1.25rem; font-weight: 900;
+    background: linear-gradient(90deg, var(--cyan) 0%, var(--indigo) 55%, var(--purple) 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  }
+
+  .tv-header-right { display: flex; align-items: center; gap: 10px; }
+
+  .tv-pill {
+    font-size: 0.6rem; font-family: 'Space Mono', monospace; font-weight: 700;
+    letter-spacing: 1.2px; text-transform: uppercase;
+    padding: 4px 11px; border-radius: 20px;
+    border: 1px solid var(--border2); color: var(--muted);
+    background: rgba(255,255,255,0.02);
+  }
+
+  .tv-pill.green { border-color: #22c55e30; color: #86efac; background: #22c55e08; }
+
+  /* ── Main ── */
+  .tv-main { flex: 1; position: relative; z-index: 1; }
+
+  /* ── Hero ── */
+  .tv-hero {
+    padding: 72px 20px 52px;
+    text-align: center;
+    display: flex; flex-direction: column; align-items: center;
+  }
+
+  /* Hero logo */
+  .tv-hero-brand {
+    display: flex; align-items: center; justify-content: center; gap: 14px;
+    margin-bottom: 24px;
+    animation: riseIn 0.6s cubic-bezier(.16,1,.3,1) both;
+  }
+
+  .tv-hero-name {
+    font-size: clamp(2.4rem, 7vw, 3.8rem);
+    font-weight: 900; line-height: 1; letter-spacing: -1.5px;
+    background: linear-gradient(95deg, var(--cyan) 0%, var(--indigo) 45%, var(--purple) 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  }
+
+  /* Trust chips row */
+  .tv-trust-row {
+    display: flex; align-items: center; justify-content: center;
+    gap: 8px; flex-wrap: wrap; margin-bottom: 18px;
+    animation: riseIn 0.6s cubic-bezier(.16,1,.3,1) 0.08s both;
+  }
+
+  .tv-trust-chip {
+    display: flex; align-items: center; gap: 5px;
+    font-size: 0.72rem; font-weight: 700;
+    padding: 5px 13px; border-radius: 20px;
+    border: 1px solid var(--border2);
+    color: var(--muted); background: rgba(255,255,255,0.02);
+    white-space: nowrap;
+  }
+
+  .tv-trust-chip .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: #22c55e;
+    box-shadow: 0 0 6px #22c55e;
+    animation: pulse 2s ease infinite;
+  }
+
+  @keyframes pulse {
+    0%,100% { opacity:1; transform:scale(1); }
+    50% { opacity:0.6; transform:scale(0.8); }
+  }
+
+  /* Tagline */
+  .tv-tagline {
+    font-size: clamp(1rem, 2.5vw, 1.18rem); font-weight: 600;
+    color: var(--muted); max-width: 500px; line-height: 1.65;
+    margin-bottom: 40px;
+    animation: riseIn 0.6s cubic-bezier(.16,1,.3,1) 0.15s both;
+  }
+
+  .tv-tagline strong { color: var(--text); font-weight: 800; }
+
+  /* ── Input zone ── */
+  .tv-input-zone {
+    width: 100%; max-width: 660px;
+    animation: riseIn 0.6s cubic-bezier(.16,1,.3,1) 0.22s both;
+  }
+
+  .tv-input-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 6px 6px 6px 20px;
+    display: flex; align-items: center; gap: 10px;
+    transition: border-color 0.25s, box-shadow 0.25s;
+    position: relative;
+  }
+
+  .tv-input-card::before {
+    content: '';
+    position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+    width: 50%; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--cyan), var(--purple), transparent);
+    border-radius: 1px;
+  }
+
+  .tv-input-card:focus-within {
+    border-color: #6366f150;
+    box-shadow: 0 0 0 4px #6366f110, 0 8px 40px #6366f115;
+  }
+
+  .tv-url-icon { color: var(--dimmer); font-size: 1rem; flex-shrink: 0; }
+
+  .tv-input {
+    flex: 1; background: transparent; border: none; outline: none;
+    color: var(--text); font-family: 'Space Mono', monospace;
+    font-size: 0.82rem; padding: 12px 0;
+    min-width: 0;
+  }
+
+  .tv-input::placeholder { color: #2d3f5a; }
+
+  .tv-btn {
+    flex-shrink: 0;
+    background: linear-gradient(135deg, #0ea5e9, #6366f1 55%, #a855f7);
+    color: #fff; border: none; border-radius: 13px;
+    padding: 13px 24px;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-weight: 800; font-size: 0.88rem;
+    cursor: pointer; white-space: nowrap;
+    display: flex; align-items: center; gap: 7px;
+    transition: opacity 0.2s, transform 0.15s, box-shadow 0.2s;
+    box-shadow: 0 4px 24px #6366f135;
+  }
+
+  .tv-btn:hover { opacity: 0.88; transform: translateY(-1px); box-shadow: 0 8px 32px #6366f145; }
+  .tv-btn:active { transform: translateY(0); }
+  .tv-btn:disabled { opacity: 0.35; cursor: not-allowed; transform: none; box-shadow: none; }
+
+  /* Supported domains */
+  .tv-domains {
+    margin-top: 12px;
+    font-size: 0.67rem; font-family: 'Space Mono', monospace;
+    color: #243050; text-align: center; letter-spacing: 0.3px;
+  }
+
+  /* Status */
+  .tv-status {
+    display: flex; align-items: center; gap: 10px;
+    padding: 13px 18px; border-radius: 12px;
+    margin-top: 14px; font-size: 0.84rem; font-weight: 700;
+  }
+
+  .tv-status.loading { background: #0ea5e90a; border: 1px solid #0ea5e920; color: #7dd3fc; }
+  .tv-status.error   { background: #ef44440a; border: 1px solid #ef444420; color: #fca5a5; }
+
+  .tv-spinner {
+    width: 15px; height: 15px;
+    border: 2px solid #22d3ee25; border-top-color: #22d3ee;
+    border-radius: 50%; animation: spin 0.75s linear infinite; flex-shrink: 0;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── Result card ── */
+  .tv-result {
+    width: 100%; max-width: 660px;
+    background: var(--surface);
+    border: 1px solid #22c55e28;
+    border-radius: 18px; margin-top: 18px;
+    overflow: hidden;
+    animation: riseIn 0.4s cubic-bezier(.16,1,.3,1);
+    box-shadow: 0 0 40px #22c55e0c;
+  }
+
+  .tv-result-head {
+    padding: 14px 20px;
+    background: linear-gradient(90deg, #22c55e08, transparent);
+    border-bottom: 1px solid #22c55e18;
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  }
+
+  .tv-result-name {
+    font-size: 0.8rem; color: #94a3b8;
+    font-family: 'Space Mono', monospace;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1;
+  }
+
+  .tv-success-chip {
+    font-family: 'Space Mono', monospace; font-size: 0.62rem;
+    padding: 4px 10px; border-radius: 20px;
+    background: #22c55e12; border: 1px solid #22c55e28; color: #86efac;
+    flex-shrink: 0;
+  }
+
+  .tv-result-body { padding: 20px; }
+  .tv-file-name { font-weight: 800; font-size: 1rem; color: #f8fafc; margin-bottom: 10px; word-break: break-all; }
+
+  .tv-meta { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 18px; }
+
+  .tv-meta-tag {
+    font-size: 0.68rem; font-family: 'Space Mono', monospace;
+    background: #1a2540; padding: 4px 10px; border-radius: 6px; color: #7dd3fc;
+  }
+
+  .tv-dl-btn {
+    display: flex; align-items: center; justify-content: center; gap: 9px;
+    width: 100%;
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+    color: #fff; border: none; border-radius: 12px;
+    padding: 15px;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-weight: 800; font-size: 0.95rem;
+    cursor: pointer; text-decoration: none;
+    transition: opacity 0.2s, transform 0.15s;
+    box-shadow: 0 4px 24px #22c55e20;
+  }
+
+  .tv-dl-btn:hover { opacity: 0.88; transform: translateY(-1px); }
+
+  /* ── How it works ── */
+  .tv-hiw {
+    max-width: 720px; margin: 64px auto 0; padding: 0 20px;
+  }
+
+  .tv-section-eyebrow {
+    font-size: 0.62rem; letter-spacing: 3px; text-transform: uppercase;
+    font-family: 'Space Mono', monospace; color: var(--dimmer);
+    text-align: center; margin-bottom: 8px;
+  }
+
+  .tv-section-title {
+    font-size: clamp(1.35rem, 3.5vw, 1.75rem); font-weight: 900;
+    text-align: center; color: var(--text); margin-bottom: 36px; line-height: 1.3;
+  }
+
+  .tv-section-title span {
+    background: linear-gradient(90deg, var(--cyan), var(--purple));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  }
+
+  /* Timeline flow */
+  .tv-flow {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(148px, 1fr));
+    gap: 0;
+    position: relative;
+  }
+
+  .tv-flow::before {
+    content: '';
+    position: absolute;
+    top: 40px; left: 10%; width: 80%; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--border2), var(--border2), transparent);
+  }
+
+  .tv-flow-step {
+    display: flex; flex-direction: column; align-items: center;
+    padding: 0 12px 28px; text-align: center; position: relative;
+  }
+
+  .tv-flow-num {
+    width: 48px; height: 48px; border-radius: 50%;
+    border: 1px solid var(--border2);
+    background: var(--surface);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Space Mono', monospace; font-weight: 700; font-size: 0.8rem;
+    color: var(--indigo); margin-bottom: 16px; position: relative; z-index: 1;
+    transition: border-color 0.25s, box-shadow 0.25s;
+  }
+
+  .tv-flow-step:hover .tv-flow-num {
+    border-color: var(--cyan);
+    box-shadow: 0 0 16px #22d3ee25;
+  }
+
+  .tv-flow-icon { font-size: 1.6rem; margin-bottom: 8px; }
+  .tv-flow-step h3 { font-size: 0.88rem; font-weight: 800; color: var(--text); margin-bottom: 5px; }
+  .tv-flow-step p  { font-size: 0.74rem; color: var(--muted); line-height: 1.55; font-weight: 500; }
+
+  /* ── Features strip ── */
+  .tv-features {
+    max-width: 720px; margin: 48px auto 0; padding: 0 20px;
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px;
+  }
+
+  .tv-feat {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 14px; padding: 20px 18px;
+    display: flex; gap: 14px; align-items: flex-start;
+    transition: border-color 0.25s, transform 0.2s;
+  }
+
+  .tv-feat:hover { border-color: var(--border2); transform: translateY(-3px); }
+
+  .tv-feat-icon {
+    font-size: 1.5rem; flex-shrink: 0;
+    width: 44px; height: 44px; border-radius: 10px;
+    background: rgba(99,102,241,0.1); border: 1px solid #6366f120;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  .tv-feat-body h4 { font-size: 0.88rem; font-weight: 800; color: var(--text); margin-bottom: 3px; }
+  .tv-feat-body p  { font-size: 0.74rem; color: var(--muted); line-height: 1.5; font-weight: 500; }
+
+  /* ── Footer ── */
+  .tv-footer {
+    text-align: center; margin-top: 64px; padding: 28px 20px;
+    border-top: 1px solid var(--border);
+    display: flex; flex-direction: column; align-items: center; gap: 10px;
+  }
+
+  .tv-footer-logo { display: flex; align-items: center; gap: 8px; margin-bottom: 2px; }
+  .tv-footer-logo span { font-size: 1rem; font-weight: 900;
+    background: linear-gradient(90deg, var(--cyan), var(--purple));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  }
+
+  .tv-footer p { font-size: 0.7rem; font-family: 'Space Mono', monospace; color: var(--border2); }
+  .tv-footer a { color: var(--cyan); text-decoration: none; }
+
+  /* ── Animations ── */
+  @keyframes riseIn {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── Mobile ── */
+  @media (max-width: 600px) {
+    .tv-header { padding: 0 16px; }
+    .tv-hero { padding: 48px 16px 36px; }
+    .tv-hero-name { font-size: 2.4rem; }
+    .tv-input-card { padding: 6px 6px 6px 14px; flex-wrap: wrap; border-radius: 16px; }
+    .tv-btn { width: 100%; justify-content: center; border-radius: 11px; }
+    .tv-flow::before { display: none; }
+    .tv-flow { grid-template-columns: 1fr 1fr; }
+  }
+`;
+
+function TeraLogo({ size = 38 }) {
+  const id = `tvl${size}`;
+  return (
+    <svg width={size} height={size} viewBox="0 0 100 100" fill="none">
+      <defs>
+        <linearGradient id={`${id}g`} x1="0" y1="0" x2="100" y2="100" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stopColor="#22d3ee" />
+          <stop offset="100%" stopColor="#7c3aed" />
+        </linearGradient>
+        <linearGradient id={`${id}p`} x1="25" y1="30" x2="70" y2="70" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stopColor="#38bdf8" />
+          <stop offset="100%" stopColor="#6366f1" />
+        </linearGradient>
+      </defs>
+      <circle cx="52" cy="50" r="37" stroke={`url(#${id}g)`} strokeWidth="3" fill="none" />
+      <ellipse cx="52" cy="50" rx="19" ry="37" stroke={`url(#${id}g)`} strokeWidth="1.8" fill="none" opacity="0.45" />
+      <line x1="15" y1="50" x2="89" y2="50" stroke={`url(#${id}g)`} strokeWidth="1.8" opacity="0.4" />
+      <line x1="21" y1="31" x2="83" y2="31" stroke={`url(#${id}g)`} strokeWidth="1.2" opacity="0.25" />
+      <line x1="21" y1="69" x2="83" y2="69" stroke={`url(#${id}g)`} strokeWidth="1.2" opacity="0.25" />
+      {[[15,50],[89,50],[52,13],[52,87],[21,31],[83,31],[21,69],[83,69]].map(([cx,cy],i)=>(
+        <circle key={i} cx={cx} cy={cy} r="2.5" fill={`url(#${id}g)`} opacity="0.8" />
+      ))}
+      <polygon points="32,33 32,67 70,50" fill={`url(#${id}p)`} opacity="0.95" />
+    </svg>
+  );
+}
+
+const FEATURES = [
+  { icon: "⚡", title: "Instant Extract", desc: "Get a direct download link in seconds — zero delay, zero waiting." },
+  { icon: "🔒", title: "No Login Needed", desc: "No account, no signup, no app install required. Just paste & go." },
+  { icon: "🎬", title: "Video Support", desc: "Movies, series, reels — all video formats are fully supported." },
+  { icon: "🌐", title: "All Domains", desc: "terabox.com, 1024tera, freeterabox, teraboxapp — all supported." },
+];
+
+export default function TeraViewer() {
+  const [url, setUrl] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [result, setResult] = useState(null);
+  const inputRef = useRef(null);
+
+  const isValid = (u) => {
+    try {
+      const h = new URL(u).hostname;
+      return ["terabox.com","1024tera.com","freeterabox.com","teraboxapp.com","4funbox.com","momerybox.com"]
+        .some(d => h.includes(d));
+    } catch { return false; }
+  };
+
+  const handleExtract = async () => {
+    const trimmed = url.trim();
+    if (!trimmed) { setError("Please paste a TeraBox link first."); return; }
+    if (!isValid(trimmed)) { setError("Not a valid TeraBox URL. Use a terabox.com share link."); return; }
+
+    setLoading(true); setError(""); setResult(null);
+    try {
+      const res = await fetch(`/api/extract?url=${encodeURIComponent(trimmed)}`);
+      const data = await res.json();
+      if (!res.ok || data.error) throw new Error(data.error || "Server error. Try again.");
+      setResult(data);
+    } catch (e) {
+      setError(e.message || "Something went wrong. Please try again.");
+    } finally { setLoading(false); }
+  };
+
+  const fmt = (b) => {
+    if (!b) return null;
+    const mb = b / (1024*1024);
+    return mb > 1024 ? `${(mb/1024).toFixed(2)} GB` : `${mb.toFixed(2)} MB`;
+  };
+
+  return (
+    <>
+      <style>{css}</style>
+      <div className="tv">
+        <div className="tv-grid-bg" />
+        <div className="tv-glow-top" />
+
+        {/* Header */}
+        <header className="tv-header">
+          <div className="tv-logo-wrap">
+            <TeraLogo size={34} />
+            <span className="tv-logo-text">Teraviewer</span>
+          </div>
+          <div className="tv-header-right">
+            <div className="tv-pill green"><span style={{marginRight:5}}>●</span>All systems live</div>
+            <div className="tv-pill">Free</div>
+          </div>
+        </header>
+
+        <main className="tv-main">
+          <div className="tv-hero">
+            {/* Brand */}
+            <div className="tv-hero-brand">
+              <TeraLogo size={66} />
+              <span className="tv-hero-name">Teraviewer</span>
+            </div>
+
+            {/* Trust row */}
+            <div className="tv-trust-row">
+              <div className="tv-trust-chip"><span className="dot" /> Live</div>
+              <div className="tv-trust-chip">✦ No Login</div>
+              <div className="tv-trust-chip">⚡ Instant</div>
+              <div className="tv-trust-chip">🎬 Video Ready</div>
+              <div className="tv-trust-chip">🔒 Safe</div>
+            </div>
+
+            {/* Tagline */}
+            <p className="tv-tagline">
+              <strong>Download &amp; Watch TeraBox videos</strong> without login.<br />
+              No app, no account — just paste the link and go.
+            </p>
+
+            {/* Input */}
+            <div className="tv-input-zone">
+              <div className="tv-input-card">
+                <span className="tv-url-icon">🔗</span>
+                <input
+                  ref={inputRef}
+                  className="tv-input"
+                  type="url"
+                  placeholder="Paste your TeraBox link here..."
+                  value={url}
+                  onChange={e => setUrl(e.target.value)}
+                  onKeyDown={e => e.key === "Enter" && handleExtract()}
+                />
+                <button className="tv-btn" onClick={handleExtract} disabled={loading}>
+                  {loading
+                    ? <><div className="tv-spinner" /> Extracting…</>
+                    : <>⬇ Download Now</>}
+                </button>
+              </div>
+              <div className="tv-domains">
+                Supports: terabox.com · teraboxapp.com · 1024tera.com · freeterabox.com
+              </div>
+
+              {loading && (
+                <div className="tv-status loading">
+                  <div className="tv-spinner" /> Fetching download link, please wait…
+                </div>
+              )}
+              {error && !loading && (
+                <div className="tv-status error">⚠ {error}</div>
+              )}
+            </div>
+
+            {/* Result */}
+            {result && !loading && (
+              <div className="tv-result">
+                <div className="tv-result-head">
+                  <div className="tv-result-name">📄 {result.file_name || "File ready"}</div>
+                  <div className="tv-success-chip">✓ Ready to download</div>
+                </div>
+                <div className="tv-result-body">
+                  <div className="tv-file-name">{result.file_name}</div>
+                  <div className="tv-meta">
+                    {fmt(result.size) && <span className="tv-meta-tag">📦 {fmt(result.size)}</span>}
+                    {result.file_type && <span className="tv-meta-tag">🗂 {result.file_type}</span>}
+                    {result.md5 && <span className="tv-meta-tag">🔑 {result.md5.slice(0,8)}…</span>}
+                  </div>
+                  <a className="tv-dl-btn" href={result.download_url} target="_blank" rel="noopener noreferrer">
+                    ⬇ Download Now
+                  </a>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* How It Works */}
+          <div className="tv-hiw">
+            <div className="tv-section-eyebrow">Simple · Fast · Free</div>
+            <div className="tv-section-title">How <span>Teraviewer</span> Works?</div>
+            <div className="tv-flow">
+              {[
+                { n:"01", icon:"🔗", h:"Copy Link", p:"Copy any share link from TeraBox in your browser" },
+                { n:"02", icon:"📋", h:"Paste Here", p:"Paste the link into the input box above" },
+                { n:"03", icon:"⚡", h:"Click Download", p:'Hit "Download Now" — get the direct link in seconds' },
+                { n:"04", icon:"🎬", h:"Watch & Save", p:"Watch the video or save it to your device — no account needed" },
+              ].map(s => (
+                <div key={s.n} className="tv-flow-step">
+                  <div className="tv-flow-num">{s.n}</div>
+                  <div className="tv-flow-icon">{s.icon}</div>
+                  <h3>{s.h}</h3>
+                  <p>{s.p}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Features */}
+          <div className="tv-features">
+            {FEATURES.map(f => (
+              <div key={f.title} className="tv-feat">
+                <div className="tv-feat-icon">{f.icon}</div>
+                <div className="tv-feat-body">
+                  <h4>{f.title}</h4>
+                  <p>{f.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </main>
+
+        {/* Footer */}
+        <footer className="tv-footer">
+          <div className="tv-footer-logo">
+            <TeraLogo size={24} />
+            <span>Teraviewer</span>
+          </div>
+          <p>Not affiliated with TeraBox · © 2025 · <a href="https://teraviewer.vercel.app">teraviewer.vercel.app</a></p>
+        </footer>
+      </div>
+    </>
+  );
+}
